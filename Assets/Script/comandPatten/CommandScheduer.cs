@@ -2,71 +2,57 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class CommandScheduler
+public class CommandScheduler
 {
-    public static Queue<ICommand> commands = new Queue<ICommand>();
-    public static Stack<ICommand> undoCommands = new Stack<ICommand>();
-    public static Stack<ICommand> redoCommands = new Stack<ICommand>();
-    public static Queue<ICommand> replayCommand = new Queue<ICommand>();
+    private Queue<ICommand> commands = new Queue<ICommand>();
+    private Queue<ICommand> replayCommand = new Queue<ICommand>();
+    private Queue<ICommand> replayCommandTemp = new();
 
 
-    public static void ScheduleCommand(ICommand command)
+
+    public void ScheduleCommand(ICommand command)
     {
         commands.Enqueue(command);
         replayCommand.Enqueue(command);
     }
-    public static void Execute()
+    public void BeginExecuteReplay()
+    {
+        replayCommandTemp = new Queue<ICommand>(replayCommand);
+        Debug.Log("replayCommandTemp" + "WHY ZERO");
+        Debug.Log(replayCommandTemp.Count);
+    }
+    public void Execute()
     {
 
         ICommand command = commands.Dequeue();
-        undoCommands.Push(command);
 
-        redoCommands.Clear();
+
         if (command != null)
         {
             command.Execute();
         }
     }
-    public static void BeginExecuteReplay()
+    public void ExecuteReplay()
     {
 
-    }
-    public static void ExecuteReplay()
-    {
-        Debug.Log(replayCommand.Count);
-        if (replayCommand.Count <= 0) return;
-        ICommand command = replayCommand.Dequeue();
+        if (replayCommandTemp.Count <= 0) return;
+        ICommand command = replayCommandTemp.Dequeue();
         if (command != null)
         {
             command.Execute();
 
         }
     }
-    public static void Undo()
+    public bool DoneReplay()
     {
-        if (undoCommands.Count <= 0) return;
-
-        ICommand command = undoCommands.Pop();
-        redoCommands.Push(command);
-        if (command != null)
-        {
-            command.Undo();
-        }
+        if (replayCommandTemp.Count <= 0) return true;
+        return false;
     }
-    public static void Redo()
-    {
-        if (redoCommands.Count <= 0) return;
-        ICommand command = redoCommands.Pop();
-        undoCommands.Push(command);
-        if (command != null)
-        {
-            command.Execute();
-        }
-    }
-    public static void Clear()
+    public void Clear()
     {
         commands.Clear();
-        undoCommands.Clear();
-        redoCommands.Clear();
+        replayCommand.Clear();
+        replayCommandTemp.Clear();
+
     }
 }

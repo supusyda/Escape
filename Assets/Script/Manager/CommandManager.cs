@@ -4,17 +4,6 @@ public class CommandManager : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     [SerializeField] public bool startReplay = false;
-    void Start()
-    {
+    [SerializeField] public CommandScheduler[] playersRecord;
 
-    }
-
-    // Update is called once per frame
-    void FixedUpdate()
-    {
-        if (startReplay == true)
-        {
-            CommandScheduler.ExecuteReplay();
-        }
-    }
 }

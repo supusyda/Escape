@@ -15,7 +15,7 @@ public class PlayerMoveBase : MonoBehaviour
     private GroundCheck _groundCheck;
     private bool _isJumping = false;
     private float currentVelocityX = 0;
-    [SerializeField] private bool record = true;
+    private PlayerRecord _playerRecord;
 
 
     void Start()
@@ -24,6 +24,8 @@ public class PlayerMoveBase : MonoBehaviour
         _transform = this.transform;
         _playerBase = GetComponent<PlayerBase>();
         _groundCheck = _playerBase.groundCheck;
+        _playerRecord = _playerBase.playerRecord;
+
     }
 
     void Update()
@@ -31,9 +33,10 @@ public class PlayerMoveBase : MonoBehaviour
     }
     void FixedUpdate()
     {
-        if (record == false) return;
-        CommandScheduler.ScheduleCommand(new InputCommandMove(_input.move.x, this));
-        CommandScheduler.Execute();
+        if (_playerRecord.recordState != RecordState.Record) return;
+
+        _playerRecord.AddRecord(new InputCommandMove(_input.move.x, this));
+
         HandleJump();
         HandleGravity();
     }
@@ -61,8 +64,7 @@ public class PlayerMoveBase : MonoBehaviour
 
         if (_input.jump)
         {
-            CommandScheduler.ScheduleCommand(new InputCommandJump(this));
-            CommandScheduler.Execute();
+            _playerRecord.AddRecord(new InputCommandJump(this));
         }
 
     }
@@ -72,7 +74,7 @@ public class PlayerMoveBase : MonoBehaviour
         _playerBase.rigidbody2D.AddForce(new Vector2(_playerBase.rigidbody2D.linearVelocityX, jumpForce), ForceMode2D.Impulse);
 
         _input.jump = false;
-        Debug.Log("JUMP");
+
     }
     void HandleGravity()
     {
