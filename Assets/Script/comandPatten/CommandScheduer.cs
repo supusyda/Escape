@@ -1,12 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+[System.Serializable]
 public class CommandScheduler
 {
-    private Queue<ICommand> commands = new Queue<ICommand>();
-    private Queue<ICommand> replayCommand = new Queue<ICommand>();
-    private Queue<ICommand> replayCommandTemp = new();
+    [SerializeField] private Queue<ICommand> commands = new Queue<ICommand>();
+    [SerializeField] public Queue<ICommand> replayCommand = new Queue<ICommand>();
+    [SerializeField] private Queue<ICommand> replayCommandTemp = new();
+
 
 
 
@@ -18,8 +20,7 @@ public class CommandScheduler
     public void BeginExecuteReplay()
     {
         replayCommandTemp = new Queue<ICommand>(replayCommand);
-        Debug.Log("replayCommandTemp" + "WHY ZERO");
-        Debug.Log(replayCommandTemp.Count);
+
     }
     public void Execute()
     {

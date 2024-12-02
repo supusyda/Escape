@@ -7,13 +7,11 @@ public class PlayerMoveBase : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     [SerializeField] private PlayerStat playerStat;
-    private float currentAcc = 0;
-    private float _currentSpeed;
     private StarterAssetsInputs _input;
     private PlayerBase _playerBase;
     private Transform _transform;
     private GroundCheck _groundCheck;
-    private bool _isJumping = false;
+
     private float currentVelocityX = 0;
     private PlayerRecord _playerRecord;
 
@@ -27,16 +25,27 @@ public class PlayerMoveBase : MonoBehaviour
         _playerRecord = _playerBase.playerRecord;
 
     }
-
-    void Update()
+    void OnEnable()
     {
+        DoorTriggerInGame.OnTouchDoor.AddListener(ResetVelocity);
     }
+    void OnDisable()
+    {
+        DoorTriggerInGame.OnTouchDoor.RemoveListener(ResetVelocity);
+    }
+    private void ResetVelocity()
+    {
+
+        _playerBase.rigidbody2D.linearVelocity = Vector2.zero;
+
+        currentVelocityX = 0;
+
+    }
+
     void FixedUpdate()
     {
         if (_playerRecord.recordState != RecordState.Record) return;
-
         _playerRecord.AddRecord(new InputCommandMove(_input.move.x, this));
-
         HandleJump();
         HandleGravity();
     }

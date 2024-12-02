@@ -6,7 +6,7 @@ public class DoorTriggerInGame : DoorTrigger
     public int doorIndex { get; private set; }
     protected override void OnTriggerEnter2D(Collider2D other)
     {
-
-        OnTouchDoor.Invoke(other.transform.GetComponent<PlayerBase>());
+        if (other.CompareTag(Tag.ANGEL))
+            OnTouchDoor.Invoke();
     }
 }

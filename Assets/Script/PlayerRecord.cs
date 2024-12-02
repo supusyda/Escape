@@ -8,11 +8,11 @@ public enum RecordState
 public class PlayerRecord : MonoBehaviour
 {
     public RecordState recordState;
-    private CommandScheduler commandScheduler = new();
+    [SerializeField] private CommandScheduler commandScheduler = new();
 
-    void Awake()
+    void Start()
     {
-        ChangeState(RecordState.Record);
+        ChangeState(RecordState.None);
     }
     public void AddRecord(ICommand command)
     {
@@ -20,7 +20,7 @@ public class PlayerRecord : MonoBehaviour
         commandScheduler.ScheduleCommand(command);
         commandScheduler.Execute();
     }
-    void ChangeState(RecordState newState)
+    public void ChangeState(RecordState newState)
     {
         switch (newState)
         {
@@ -33,8 +33,11 @@ public class PlayerRecord : MonoBehaviour
                 break;
             case RecordState.Replay:
                 Debug.Log("CHANGE STATE TO REPLAY");
-                commandScheduler.BeginExecuteReplay();
                 recordState = RecordState.Replay;
+                commandScheduler.BeginExecuteReplay();
+                break;
+            case RecordState.None:
+                recordState = RecordState.None;
                 break;
             default:
                 break;
@@ -52,10 +55,7 @@ public class PlayerRecord : MonoBehaviour
                 ChangeState(RecordState.None);
             }
         }
-        if (Input.GetKeyDown(KeyCode.Z))
-        {
-            ChangeState(RecordState.Replay);
-        }
+
     }
 
 
