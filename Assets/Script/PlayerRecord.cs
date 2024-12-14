@@ -14,6 +14,19 @@ public class PlayerRecord : MonoBehaviour
     {
         ChangeState(RecordState.None);
     }
+    void OnEnable()
+    {
+        GameManager.OnResetScene.AddListener(OnRestThisRound);
+
+    }
+    void OnDisable()
+    {
+        GameManager.OnResetScene.RemoveListener(OnRestThisRound);
+    }
+    void OnRestThisRound()
+    {
+        ChangeState(RecordState.None);
+    }
     public void AddRecord(ICommand command)
     {
         if (recordState != RecordState.Record) return;
@@ -27,8 +40,10 @@ public class PlayerRecord : MonoBehaviour
             case RecordState.Record:
                 if (commandScheduler != null)
                 {
-                    commandScheduler.Clear();
+                    // commandScheduler.Clear();
                 }
+                commandScheduler.CreateNewReplayQueue();
+                Debug.Log("CHANGE STATE TO RECORD");
                 recordState = RecordState.Record;
                 break;
             case RecordState.Replay:
@@ -44,6 +59,10 @@ public class PlayerRecord : MonoBehaviour
 
         }
 
+    }
+    public void ClearRecord()
+    {
+        commandScheduler.ClearCurrentReplay();
     }
     void FixedUpdate()
     {

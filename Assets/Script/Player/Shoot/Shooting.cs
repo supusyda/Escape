@@ -1,20 +1,71 @@
+using StarterAssets;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 
 public class Shooting : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    public static UnityEvent<Vector2, Vector2, string> ShootBullet = new();//bullet dir , position , prefab name
+    public static UnityEvent<Vector2, Vector2, string, string> ShootBullet = new();//bullet dir , position , prefab name,shooter tag
+    public static UnityEvent shootFired = new();
+    public Vector2 shootDir { get; private set; } = Vector2.zero;
+    private float coolDown = 1f;
+    private float coolDownTimer = 0;
+    private StarterAssetsInputs _playerInput;
+    private PlayerBase _playerBase;
 
-    protected virtual void Shoot()
+    void OnEnable()
     {
-        // Get a projectile from the object pool
-        // Projectile bulletObject = objectPool.Get();
-        // // Launch the projectile
-        // bulletObject.Launch(m_MuzzlePosition.position, m_MuzzlePosition.rotation);
-        // // Set the next time to shoot
-        // nextTimeToShoot = Time.fixedTime + m_CooldownWindow;
+        GameManager.OnResetScene.AddListener(OnRestThisRound);
+    }
+    void OnDisable()
+    {
+        GameManager.OnResetScene.RemoveListener(OnRestThisRound);
+    }
+    private void OnRestThisRound()
+    {
+        coolDownTimer = coolDown;
+        _playerInput.shoot = false;
+
+
+    }
+
+    void Start()
+
+    {
+        _playerBase = GetComponent<PlayerBase>();
+        shootDir = _playerBase.playerMoveBase.lookDir;
+        _playerInput = GetComponent<StarterAssetsInputs>();
+        coolDownTimer = coolDown;
+    }
+
+
+    public virtual void Shoot()
+    {
+        ShootBullet.Invoke(shootDir, transform.position, BulletName.BULLET_NAME, transform.tag);
+        coolDownTimer = 0;
+        _playerInput.shoot = false;
+
 
         // m_GunFired.Invoke();
+    }
+    void FixedUpdate()
+    {
+        if (coolDownTimer < coolDown)
+        {
+            coolDownTimer += Time.fixedDeltaTime;
+            return;
+        }
+        if (_playerInput.shoot == false) return;
+
+        shootDir = _playerBase.playerMoveBase.lookDir;//set bullet move dir
+        if (shootDir == Vector2.zero) return;
+
+        _playerBase.playerRecord.AddRecord(new InputCommandShoot(this));
+
+
+
+
     }
 }

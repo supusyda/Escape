@@ -10,6 +10,7 @@ public class PlayerBase : MonoBehaviour
     public PlayerRecord playerRecord { get; private set; }
     public PlayerMoveBase playerMoveBase { get; private set; }
     public ResetPosition resetPosition { get; private set; }
+    public Shooting shooting { get; private set; }
     [SerializeField] private bool isDemon = false;
     static public UnityEvent<PlayerBase, bool> LoadPlayer = new UnityEvent<PlayerBase, bool>();
 
@@ -25,6 +26,7 @@ public class PlayerBase : MonoBehaviour
         playerRecord = GetComponent<PlayerRecord>();
         playerMoveBase = GetComponent<PlayerMoveBase>();
         resetPosition = GetComponent<ResetPosition>();
+        shooting = GetComponent<Shooting>();
         EventAddLis();
     }
     void Start()
@@ -34,10 +36,14 @@ public class PlayerBase : MonoBehaviour
     void EventAddLis()
     {
         DoorTriggerInGame.OnTouchDoor.AddListener(OnTouchDoor);
+        GameManager.OnResetScene.AddListener(OnTouchDoor);
+        GameManager.OnEndTurn.AddListener(OnTouchDoor);
     }
     void EventRemoveLis()
     {
         DoorTriggerInGame.OnTouchDoor.RemoveListener(OnTouchDoor);
+        GameManager.OnResetScene.RemoveListener(OnTouchDoor);
+        GameManager.OnEndTurn.RemoveListener(OnTouchDoor);
     }
 
     private void OnTouchDoor()

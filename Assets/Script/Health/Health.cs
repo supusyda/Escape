@@ -13,7 +13,7 @@ public class Health : MonoBehaviour
     // public UnityEvent<float> HealthChanged;
 
     protected bool m_IsInvulnerable;
-    protected bool m_IsDead;
+    [SerializeField] protected bool m_IsDead;
 
     // Properties
     public float MaxHealth { get => m_MaxHealth; set => m_MaxHealth = value; }
@@ -39,6 +39,8 @@ public class Health : MonoBehaviour
             return;
 
         m_CurrentHealth -= amount;
+
+
 
         // Check for death condition.
         if (m_CurrentHealth <= 0)
@@ -71,12 +73,22 @@ public class Health : MonoBehaviour
     protected virtual void Die()
     {
         // Only die once
+
         if (m_IsDead)
             return;
 
         m_IsDead = true;
         // Died.Invoke();
-        gameObject.SetActive(false);
+        // transform.parent.gameObject.SetActive(false);
+    }
+    protected virtual void Reset()
+    {
+        m_CurrentHealth = MaxHealth;
+        m_IsDead = false;
+        // transform.parent.gameObject.SetActive(true);
+        Debug.Log("RESET HEALTH" + transform.parent.name);
+
+
     }
 }
 

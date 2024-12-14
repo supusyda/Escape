@@ -7,6 +7,7 @@ public class PlayerMoveBase : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     [SerializeField] private PlayerStat playerStat;
+    public Vector2 lookDir { get; private set; } = Vector2.zero;
     private StarterAssetsInputs _input;
     private PlayerBase _playerBase;
     private Transform _transform;
@@ -27,11 +28,14 @@ public class PlayerMoveBase : MonoBehaviour
     }
     void OnEnable()
     {
-        DoorTriggerInGame.OnTouchDoor.AddListener(ResetVelocity);
+
+        GameManager.OnResetScene.AddListener(ResetVelocity);
     }
     void OnDisable()
     {
-        DoorTriggerInGame.OnTouchDoor.RemoveListener(ResetVelocity);
+
+        GameManager.OnResetScene.AddListener(ResetVelocity);
+
     }
     private void ResetVelocity()
     {
@@ -39,6 +43,7 @@ public class PlayerMoveBase : MonoBehaviour
         _playerBase.rigidbody2D.linearVelocity = Vector2.zero;
 
         currentVelocityX = 0;
+        _input.jump = false;
 
     }
 
@@ -46,23 +51,27 @@ public class PlayerMoveBase : MonoBehaviour
     {
         if (_playerRecord.recordState != RecordState.Record) return;
         _playerRecord.AddRecord(new InputCommandMove(_input.move.x, this));
-        HandleJump();
+        HandleJump();// issue when press jump all the gameobject has the input will set _input.jump = true
         HandleGravity();
     }
     public void Move(float moveInput)
     {
 
         float moveSpeed = playerStat.maxMoveSpeed;
+
         if (moveInput != 0)
         {
             // Accelerate towards the target speed
             currentVelocityX = Mathf.MoveTowards(currentVelocityX, moveInput * moveSpeed, playerStat.accelerateSpeed * Time.fixedDeltaTime);
+            SetLookDir(new Vector2(moveInput, 0));
         }
         else
         {
             // Decelerate to a stop when no input is given
             currentVelocityX = Mathf.MoveTowards(currentVelocityX, 0, playerStat.decelerateSpeedTime * Time.fixedDeltaTime);
         }
+
+
         _playerBase.rigidbody2D.linearVelocity = new Vector2(currentVelocityX, _playerBase.rigidbody2D.linearVelocity.y);
 
 
@@ -71,7 +80,7 @@ public class PlayerMoveBase : MonoBehaviour
     {
         if (!_groundCheck.IsGrounded) return;
 
-        if (_input.jump)
+        if (_input.jump == true)
         {
             _playerRecord.AddRecord(new InputCommandJump(this));
         }
@@ -81,7 +90,7 @@ public class PlayerMoveBase : MonoBehaviour
     {
         float jumpForce = Mathf.Sqrt(playerStat.JumpHeight * (Physics2D.gravity.y * _playerBase.rigidbody2D.gravityScale) * -2);
         _playerBase.rigidbody2D.AddForce(new Vector2(_playerBase.rigidbody2D.linearVelocityX, jumpForce), ForceMode2D.Impulse);
-
+        // Debug.Log("JUMP ASS" + transform.name);  
         _input.jump = false;
 
     }
@@ -95,6 +104,11 @@ public class PlayerMoveBase : MonoBehaviour
         {
             _playerBase.rigidbody2D.gravityScale = playerStat.gravityScale;
         }
+    }
+    void SetLookDir(Vector2 lookDir)
+    {
+        if (lookDir.x == 0) return;
+        this.lookDir = lookDir;
     }
 
 }

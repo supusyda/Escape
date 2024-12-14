@@ -4,12 +4,18 @@ public class BulletBase : MonoBehaviour
 {
     [SerializeField] private BulletData bulletData;
     [SerializeField] private Vector2 moveDirection = Vector2.zero;
+
     private float lifeTimer;         // Internal timer to track lifespan
-    protected virtual void Start()
+
+    private void OnEnable()
     {
         lifeTimer = bulletData.lifespan;
+        GameManager.OnResetScene.AddListener(DespawnBullet);
     }
-
+    private void OnDisable()
+    {
+        GameManager.OnResetScene.RemoveListener(DespawnBullet);
+    }
     protected virtual void Update()
     {
         MoveBullet();
@@ -42,25 +48,26 @@ public class BulletBase : MonoBehaviour
     }
     private void CheckCollisionInterfaces(Collider2D other)
     {
-        // Get the first contact
-
-
-        // Slight offset to move it outside of the surface
-        Debug.Log("ASS");
 
         var monoBehaviours = other.transform.Find("Health").GetComponents<MonoBehaviour>();
         foreach (var monoBehaviour in monoBehaviours)
         {
-            HandleDamageableInterface(monoBehaviour);
             // HandleEffectTriggerInterface(monoBehaviour, offsetPosition);
+            HandleDamageableInterface(monoBehaviour, other.tag);
         }
+
     }
-    private void HandleDamageableInterface(MonoBehaviour monoBehaviour)
+    private void HandleDamageableInterface(MonoBehaviour monoBehaviour, string hitTag)
     {
+
+        if (hitTag == transform.tag) return;
+
         if (monoBehaviour is IDamageAble damageable)
         {
+
             damageable.TakeDamage(bulletData.damage);
         }
+        DespawnBullet();
     }
     // Applies damage to the hit object
     public void SetMoveDirection(Vector2 direction)
@@ -71,7 +78,7 @@ public class BulletBase : MonoBehaviour
     // Destroys the bullet
     protected virtual void DespawnBullet()
     {
-        // BulletSpawner.instance.DespawnOjb(transform);
+        BulletSpawner.instance.DespawnOjb(transform);
 
     }
 }

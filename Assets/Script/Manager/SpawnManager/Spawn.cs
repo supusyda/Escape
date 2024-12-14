@@ -18,7 +18,7 @@ public class Spawn : MonoBehaviour
     //     this.LoadPrefabs();
     //     this.LoadHolder();
     // }
-    private void OnEnable()
+    protected virtual void OnEnable()
     {
         // if (poolObj != null) {}
         this.LoadPrefabs();

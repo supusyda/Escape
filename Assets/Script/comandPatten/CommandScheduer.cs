@@ -7,19 +7,39 @@ public class CommandScheduler
 {
     [SerializeField] private Queue<ICommand> commands = new Queue<ICommand>();
     [SerializeField] public Queue<ICommand> replayCommand = new Queue<ICommand>();
-    [SerializeField] private Queue<ICommand> replayCommandTemp = new();
+    [SerializeField] public List<Queue<ICommand>> replayCommandsList = new();
 
+    [SerializeField] private Queue<ICommand> replayCommandTemp = new();
+    private int currentReplayIndex = -1;
 
 
 
     public void ScheduleCommand(ICommand command)
     {
         commands.Enqueue(command);
-        replayCommand.Enqueue(command);
+        replayCommandsList[currentReplayIndex].Enqueue(command);
+    }
+    public void CreateNewReplayQueue()
+    {
+        replayCommandTemp.Clear();
+        Queue<ICommand> replay = new();
+        replayCommandsList.Add(replay);
+        currentReplayIndex++;
+    }
+    public void ClearCurrentReplay()
+    {
+        replayCommandsList[currentReplayIndex].Clear();
+    }
+    public void ReversePrevReplay()
+    {
+        replayCommandsList.RemoveAt(currentReplayIndex);
+        currentReplayIndex--;
+
     }
     public void BeginExecuteReplay()
     {
-        replayCommandTemp = new Queue<ICommand>(replayCommand);
+        // Debug.Log(currentReplayIndex);
+        replayCommandTemp = new Queue<ICommand>(replayCommandsList[currentReplayIndex]);
 
     }
     public void Execute()
