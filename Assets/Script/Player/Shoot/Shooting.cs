@@ -45,8 +45,8 @@ public class Shooting : MonoBehaviour
 
     {
         _playerBase = GetComponent<PlayerBase>();
-        shootDir = _playerBase.playerMoveBase.lookDir;
         _playerInput = GetComponent<StarterAssetsInputs>();
+        shootDir = _playerBase.playerMoveBase.lookDir;
         coolDownTimer = coolDown;
     }
 
@@ -68,12 +68,10 @@ public class Shooting : MonoBehaviour
             return;
         }
 
-        if (_playerInput.shoot == false) return;//player input
-
+        if (!_playerInput.shoot) return;//player input
         shootDir = _playerBase.playerMoveBase.lookDir;//set bullet move dir
         if (shootDir == Vector2.zero) return;
         if (!_canShoot) return;
-
         _playerBase.playerRecord.AddRecord(new InputCommandShoot(this));
 
 

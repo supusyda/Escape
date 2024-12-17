@@ -15,7 +15,7 @@ public class PlayerMoveBase : MonoBehaviour
 
     private float currentVelocityX = 0;
     private PlayerRecord _playerRecord;
-    private bool _canMove = false;
+    private bool _canMove = true;
 
 
     void Start()

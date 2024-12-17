@@ -13,7 +13,7 @@ public class ResetPosition : MonoBehaviour
     }
     public void ResetTransformPos()
     {
-        Debug.Log("RESET POS " + transform.name + " " + transform.position);
+
         transform.position = startPos;
     }
 }

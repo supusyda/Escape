@@ -78,9 +78,7 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.Z))
         {
-            Debug.Log("LOG ZZ");
             ChangeGameState(GameState.Play);
-
         }
     }
 
@@ -135,14 +133,11 @@ public class GameManager : MonoBehaviour
             else // angle win round
             {
                 ChangeTurn(TurnState.Demon); // 
-                // ChangeGameState(GameState.WaitForInput);
-
             }
         }
         else
         {
             ResetThisRound();
-
         }
     }
     bool IsNoMoreEnemy()
@@ -152,7 +147,7 @@ public class GameManager : MonoBehaviour
     public void ChangeTurn(TurnState turn)
     {
         OnResetScene.Invoke();
-        ChangeGameState(GameState.WaitForInput);
+        ChangeGameState(GameState.WaitForInput);//make the user wait for input
 
         switch (turn)
         {
@@ -224,11 +219,8 @@ public class GameManager : MonoBehaviour
                     //not do any thing
                 }
                 else // angle died (WIN ROUND)
-
                 {
-
                     ChangeTurn(TurnState.Angel);
-
                 }
                 break;
         }
@@ -253,7 +245,7 @@ public class GameManager : MonoBehaviour
         else GetDemonByID(currentDemonActiveRePlayIndex).playerRecord.ClearRecord(); // clear the record
 
         ChangeTurn(currentTurn);// just to restart the turn logic
-        ChangeGameState(GameState.WaitForInput);//make the user wait for input
+        // ChangeGameState(GameState.WaitForInput);//make the user wait for input
     }
 
     Demon GetDemonByID(int ID)
@@ -270,7 +262,7 @@ public class GameManager : MonoBehaviour
     }
     void OnGameWin()
     {
-        Debug.Log("WIN  ");
+
         OnWinStage.Invoke();
     }
     private bool IsDemon(PlayerBase player) // just for now. can be upgrade
