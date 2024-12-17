@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class TimeUiManager : MonoBehaviour
@@ -9,37 +10,67 @@ public class TimeUiManager : MonoBehaviour
     [SerializeField] float RoundTimeLimit;
     private float elapseTime;
     private float currentTimeRemain;
+    private Coroutine _coundownCorotine;
+    private bool _isCountdown = true;
     void OnEnable()
     {
-        GameManager.OnResetScene.AddListener(OnRestThisRound);
+        GameManager.OnResetScene.AddListener(InitCount);
+        GameManager.OnWinStage.AddListener(StopCountDownBySec);
+        GameManager.OnHasInputActive.AddListener(BeginCount);
     }
     void OnDisable()
     {
-        GameManager.OnResetScene.RemoveListener(OnRestThisRound);
+        GameManager.OnResetScene.RemoveListener(InitCount);
+        GameManager.OnWinStage.RemoveListener(StopCountDownBySec);
+        GameManager.OnHasInputActive.RemoveListener(BeginCount);
+
     }
-    private void OnRestThisRound()
+
+    private void BeginCount()
+    {
+        if (_coundownCorotine != null) StopCountDownBySec();
+        _coundownCorotine = StartCoroutine(CountDownBySec(RoundTimeLimit));
+    }
+    void InitCount()
     {
         elapseTime = 0;
         currentTimeRemain = RoundTimeLimit;
 
         timerSlider.SetTimeSlider(RoundTimeLimit);
-
         countDownUI.SetTimeCount(RoundTimeLimit);
-
+        StopCountDownBySec();//if count is runing disable it
     }
-
+    void StopCountDownBySec()
+    {
+        if (_coundownCorotine != null)
+            StopCoroutine(_coundownCorotine);
+    }
     void Start()
     {
-        elapseTime = 0;
-        currentTimeRemain = RoundTimeLimit;
-        timerSlider.SetTimeSlider(RoundTimeLimit);
+
+        InitCount();
 
     }
     void Update()
     {
-        currentTimeRemain -= Time.deltaTime;
+        // currentTimeRemain -= Time.deltaTime;
 
-        timerSlider.UpdateSlider(currentTimeRemain);
-        countDownUI.UpdateCountdownDisplay(currentTimeRemain);
+
+
     }
+    IEnumerator CountDownBySec(float countdownSec)
+    {
+
+        while (currentTimeRemain >= 0 && _isCountdown == true)
+        {
+
+            currentTimeRemain -= Time.deltaTime;
+            timerSlider.UpdateSlider(currentTimeRemain);
+            countDownUI.UpdateCountdownDisplay(currentTimeRemain);
+            yield return null;
+        }
+        GameManager.OnOutOfTime.Invoke();
+
+    }
+
 }

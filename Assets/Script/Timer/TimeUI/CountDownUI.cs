@@ -46,7 +46,7 @@ public class CountDownUI : MonoBehaviour
     public void UpdateCountdownDisplay(float currentTime)
     {
         // Format time to "SS"iflog 
-        Debug.Log(currentTime);
+
         int displayTime = currentTime > 0 ? Mathf.CeilToInt(currentTime) : 0;
         string timeFormatted = Mathf.FloorToInt(displayTime % 60).ToString("00");
 

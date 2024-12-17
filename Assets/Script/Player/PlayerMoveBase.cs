@@ -15,6 +15,7 @@ public class PlayerMoveBase : MonoBehaviour
 
     private float currentVelocityX = 0;
     private PlayerRecord _playerRecord;
+    private bool _canMove = false;
 
 
     void Start()
@@ -29,28 +30,42 @@ public class PlayerMoveBase : MonoBehaviour
     void OnEnable()
     {
 
-        GameManager.OnResetScene.AddListener(ResetVelocity);
+        GameManager.OnResetScene.AddListener(ResetMove);
+        GameManager.OnHasInputActive.AddListener(HasInputActive);
     }
+
+    private void HasInputActive()
+    {
+        _canMove = true;
+
+    }
+
     void OnDisable()
     {
 
-        GameManager.OnResetScene.AddListener(ResetVelocity);
+        GameManager.OnResetScene.AddListener(ResetMove);
+        GameManager.OnHasInputActive.RemoveListener(HasInputActive);
 
     }
-    private void ResetVelocity()
+    private void ResetMove()
     {
 
         _playerBase.rigidbody2D.linearVelocity = Vector2.zero;
 
         currentVelocityX = 0;
         _input.jump = false;
+        _canMove = false;
+
 
     }
 
     void FixedUpdate()
     {
-        if (_playerRecord.recordState != RecordState.Record) return;
-        _playerRecord.AddRecord(new InputCommandMove(_input.move.x, this));
+        if (!_canMove) return;
+
+        if (_playerRecord.recordState != RecordState.Record) return;//only if is record the input that the player can move
+
+        _playerRecord.AddRecord(new InputCommandMove(_input.move.x, this));// record the input
         HandleJump();// issue when press jump all the gameobject has the input will set _input.jump = true
         HandleGravity();
     }

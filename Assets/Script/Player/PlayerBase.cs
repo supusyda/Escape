@@ -35,13 +35,13 @@ public class PlayerBase : MonoBehaviour
     }
     void EventAddLis()
     {
-        DoorTriggerInGame.OnTouchDoor.AddListener(OnTouchDoor);
+        // DoorTriggerInGame.OnTouchDoor.AddListener(OnTouchDoor);
         GameManager.OnResetScene.AddListener(OnTouchDoor);
         GameManager.OnEndTurn.AddListener(OnTouchDoor);
     }
     void EventRemoveLis()
     {
-        DoorTriggerInGame.OnTouchDoor.RemoveListener(OnTouchDoor);
+        // DoorTriggerInGame.OnTouchDoor.RemoveListener(OnTouchDoor);
         GameManager.OnResetScene.RemoveListener(OnTouchDoor);
         GameManager.OnEndTurn.RemoveListener(OnTouchDoor);
     }

@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Angel
   - Demon
+  - Bullet
   layers:
   - Default
   - TransparentFX

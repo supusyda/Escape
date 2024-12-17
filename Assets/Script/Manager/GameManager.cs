@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 public enum GameState
 {
-    WaitForInput, Win, Lose, SwitchController
+    WaitForInput, Play
 }
 public enum TurnState
 {
@@ -15,12 +15,20 @@ public class GameManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     static public GameManager instance;
     public TurnState currentTurn = TurnState.Angel;
-    [SerializeField] private int currentDemonActiveRePlayIndex = -1;
+    public GameState currentGameState { get; private set; }
+
+    [SerializeField] private int currentDemonActiveRePlayIndex = -1; // all demon have index < this varible can be replay
     public List<PlayerBase> angel = new List<PlayerBase>();
     public List<PlayerBase> demons = new List<PlayerBase>();
 
     static public UnityEvent OnResetScene = new();
+    static public UnityEvent OnHasInputActive = new();
+
     static public UnityEvent OnEndTurn = new();
+    static public UnityEvent OnOutOfTime = new();
+    static public UnityEvent OnWinStage = new();
+
+
 
 
 
@@ -30,6 +38,7 @@ public class GameManager : MonoBehaviour
         PlayerBase.LoadPlayer.AddListener(OnPlayerLoad);
         DoorTriggerInGame.OnTouchDoor.AddListener(OnTouchDoor);
         CharacterHealth.OnCharacterHealthDied.AddListener(OnCharDieLogic);
+        OnOutOfTime.AddListener(ResetThisRound);
 
     }
     void OnDisable()
@@ -37,6 +46,7 @@ public class GameManager : MonoBehaviour
         PlayerBase.LoadPlayer.RemoveListener(OnPlayerLoad);
         DoorTriggerInGame.OnTouchDoor.RemoveListener(OnTouchDoor);
         CharacterHealth.OnCharacterHealthDied.RemoveListener(OnCharDieLogic);
+        OnOutOfTime.RemoveListener(ResetThisRound);
 
     }
     private void OnPlayerLoad(PlayerBase player, bool isDemon)
@@ -53,9 +63,26 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         instance = this;
-        ChangeTurn(currentTurn);
-    }
+        ChangeTurn(currentTurn);// init the first logic
 
+
+    }
+    void Update()
+    {
+        if (currentGameState == GameState.WaitForInput)
+        {
+            WaitForInput();
+        }
+    }
+    void WaitForInput()
+    {
+        if (Input.GetKeyUp(KeyCode.Z))
+        {
+            Debug.Log("LOG ZZ");
+            ChangeGameState(GameState.Play);
+
+        }
+    }
 
     private void HandleAllyTurn()
     {
@@ -63,7 +90,7 @@ public class GameManager : MonoBehaviour
         angel[0].playerRecord.ChangeState(RecordState.Record);
         angel[0].transform.gameObject.SetActive(true);
 
-        currentTurn = TurnState.Angel;
+        // currentTurn = TurnState.Angel;
         if (currentDemonActiveRePlayIndex < 0) return; // haven't touch door a single time yet
 
         DemonAction();
@@ -74,7 +101,7 @@ public class GameManager : MonoBehaviour
     {
         currentTurn = TurnState.Demon;
 
-        angel[0].playerRecord.ChangeState(RecordState.Replay);
+        angel[0].playerRecord.ChangeState(RecordState.Replay);//angle
 
         DemonAction();
 
@@ -100,9 +127,17 @@ public class GameManager : MonoBehaviour
         {
             currentDemonActiveRePlayIndex++;
 
-            if (IsNoMoreEnemy()) { Debug.Log("NO MORE ENEMY"); return; }
+            if (IsNoMoreEnemy())
+            {
+                OnGameWin();
+                return;
+            }
+            else // angle win round
+            {
+                ChangeTurn(TurnState.Demon); // 
+                // ChangeGameState(GameState.WaitForInput);
 
-            ChangeTurn(TurnState.Demon);
+            }
         }
         else
         {
@@ -117,14 +152,51 @@ public class GameManager : MonoBehaviour
     public void ChangeTurn(TurnState turn)
     {
         OnResetScene.Invoke();
+        ChangeGameState(GameState.WaitForInput);
 
         switch (turn)
+        {
+            case TurnState.Angel:
+                // HandleAllyTurn();
+                currentTurn = TurnState.Angel;
+
+                break;
+            case TurnState.Demon:
+                currentTurn = TurnState.Demon;
+
+                // HandleEnemyTurn();
+                break;
+
+            default: break;
+        }
+    }
+    private void HandleCurrentTurn()
+    {
+        switch (currentTurn)
         {
             case TurnState.Angel:
                 HandleAllyTurn();
                 break;
             case TurnState.Demon:
                 HandleEnemyTurn();
+                break;
+            default:
+                break;
+        }
+    }
+    public void ChangeGameState(GameState gameState)
+    {
+        switch (gameState)
+        {
+            case GameState.WaitForInput:
+                currentGameState = GameState.WaitForInput;
+                break;
+            case GameState.Play:
+                OnHasInputActive?.Invoke(); // active input and time for game
+
+                HandleCurrentTurn();// 
+                currentGameState = GameState.Play;
+
                 break;
 
             default: break;
@@ -136,21 +208,20 @@ public class GameManager : MonoBehaviour
         {
 
             case TurnState.Angel:
-                if (player != angel[0])//is a demon
+                if (IsDemon(player))//is a demon
                 {
                     return;
                 }
                 else
                 {
                     ResetThisRound();
-                    //TODO:Reset current iteration
+                    //Reset current iteration
                 }
                 break;
             case TurnState.Demon:
-                if (player != angel[0])//is a demon
+                if (IsDemon(player))//is a demon
                 {
-                    //TODO:Reset current iteration
-
+                    //not do any thing
                 }
                 else // angle died (WIN ROUND)
 
@@ -173,15 +244,18 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
     void ResetThisRound()
     {
 
-        if (currentTurn == TurnState.Angel) angel[0].playerRecord.ClearRecord();
+        if (currentTurn == TurnState.Angel) angel[0].playerRecord.ClearRecord();//clear the record
 
-        else demons[currentDemonActiveRePlayIndex].playerRecord.ClearRecord();
+        else GetDemonByID(currentDemonActiveRePlayIndex).playerRecord.ClearRecord(); // clear the record
 
         ChangeTurn(currentTurn);// just to restart the turn logic
+        ChangeGameState(GameState.WaitForInput);//make the user wait for input
     }
+
     Demon GetDemonByID(int ID)
     {
         foreach (PlayerBase item in demons)
@@ -194,5 +268,13 @@ public class GameManager : MonoBehaviour
         }
         return null;
     }
-
+    void OnGameWin()
+    {
+        Debug.Log("WIN  ");
+        OnWinStage.Invoke();
+    }
+    private bool IsDemon(PlayerBase player) // just for now. can be upgrade
+    {
+        return player != angel[0];
+    }
 }

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 public enum RecordState
 {
@@ -12,13 +13,16 @@ public class PlayerRecord : MonoBehaviour
 
     void Start()
     {
-        ChangeState(RecordState.None);
+
     }
     void OnEnable()
     {
         GameManager.OnResetScene.AddListener(OnRestThisRound);
+        // GameManager.OnHasInputActive.AddListener(OnHasInputActive);
 
     }
+
+
     void OnDisable()
     {
         GameManager.OnResetScene.RemoveListener(OnRestThisRound);
@@ -43,11 +47,11 @@ public class PlayerRecord : MonoBehaviour
                     // commandScheduler.Clear();
                 }
                 commandScheduler.CreateNewReplayQueue();
-                Debug.Log("CHANGE STATE TO RECORD");
+                // Debug.Log("CHANGE STATE TO RECORD");
                 recordState = RecordState.Record;
                 break;
             case RecordState.Replay:
-                Debug.Log("CHANGE STATE TO REPLAY");
+                // Debug.Log("CHANGE STATE TO REPLAY");
                 recordState = RecordState.Replay;
                 commandScheduler.BeginExecuteReplay();
                 break;
@@ -62,6 +66,7 @@ public class PlayerRecord : MonoBehaviour
     }
     public void ClearRecord()
     {
+        Debug.Log("CLEAR RECORD OF" + transform.name);
         commandScheduler.ClearCurrentReplay();
     }
     void FixedUpdate()

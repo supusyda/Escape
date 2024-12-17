@@ -86,7 +86,7 @@ public class Health : MonoBehaviour
         m_CurrentHealth = MaxHealth;
         m_IsDead = false;
         // transform.parent.gameObject.SetActive(true);
-        Debug.Log("RESET HEALTH" + transform.parent.name);
+
 
 
     }

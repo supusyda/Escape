@@ -3,13 +3,17 @@ using UnityEngine;
 public class ResetPosition : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    [SerializeField] private Transform StartPos;
-    void Start()
+    // [SerializeField] private Transform StartPos;
+    private Vector2 startPos;
+
+    void OnEnable()
     {
-        // StartPos = transform.position;
+        startPos = transform.position;
+        // ResetTransformPos(); 
     }
     public void ResetTransformPos()
     {
-        transform.position = StartPos.position;
+        Debug.Log("RESET POS " + transform.name + " " + transform.position);
+        transform.position = startPos;
     }
 }

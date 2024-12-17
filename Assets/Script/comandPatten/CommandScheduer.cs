@@ -28,7 +28,7 @@ public class CommandScheduler
     }
     public void ClearCurrentReplay()
     {
-        replayCommandsList[currentReplayIndex].Clear();
+        replayCommandsList[currentReplayIndex]?.Clear();
     }
     public void ReversePrevReplay()
     {
