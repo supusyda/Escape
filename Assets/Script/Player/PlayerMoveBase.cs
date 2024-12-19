@@ -62,9 +62,6 @@ public class PlayerMoveBase : MonoBehaviour
     void FixedUpdate()
     {
         if (!_canMove) return;
-
-        if (_playerRecord.recordState != RecordState.Record) return;//only if is record the input that the player can move
-
         _playerRecord.AddRecord(new InputCommandMove(_input.move.x, this));// record the input
         HandleJump();// issue when press jump all the gameobject has the input will set _input.jump = true
         HandleGravity();
@@ -73,23 +70,25 @@ public class PlayerMoveBase : MonoBehaviour
     {
 
         float moveSpeed = playerStat.maxMoveSpeed;
-
+        if (_playerBase.wallCheck?.IsWalled == true) { currentVelocityX = 0; return; }
         if (moveInput != 0)
         {
             // Accelerate towards the target speed
-            currentVelocityX = Mathf.MoveTowards(currentVelocityX, moveInput * moveSpeed, playerStat.accelerateSpeed * Time.fixedDeltaTime);
-            SetLookDir(new Vector2(moveInput, 0));
+            _playerBase.playerAnim?.ChangeAnimatorState(PlayerAnimateState.Walk);
+            currentVelocityX = Mathf.Lerp(currentVelocityX, moveInput * moveSpeed, playerStat.accelerateSpeed * Time.fixedDeltaTime);
+            // currentVelocityX = Mathf.MoveTowards(currentVelocityX, moveInput * moveSpeed, playerStat.accelerateSpeed * Time.fixedDeltaTime);
         }
         else
         {
             // Decelerate to a stop when no input is given
-            currentVelocityX = Mathf.MoveTowards(currentVelocityX, 0, playerStat.decelerateSpeedTime * Time.fixedDeltaTime);
+            currentVelocityX = Mathf.Lerp(currentVelocityX, 0, playerStat.decelerateSpeedTime * Time.fixedDeltaTime);
+            // currentVelocityX = Mathf.MoveTowards(currentVelocityX, 0, playerStat.decelerateSpeedTime * Time.fixedDeltaTime);
+
+
         }
 
 
-        _playerBase.rigidbody2D.linearVelocity = new Vector2(currentVelocityX, _playerBase.rigidbody2D.linearVelocity.y);
-
-
+        _playerBase.rigidbody2D.linearVelocityX = currentVelocityX;
     }
     private void HandleJump()
     {
@@ -107,6 +106,8 @@ public class PlayerMoveBase : MonoBehaviour
         _playerBase.rigidbody2D.AddForce(new Vector2(_playerBase.rigidbody2D.linearVelocityX, jumpForce), ForceMode2D.Impulse);
         // Debug.Log("JUMP ASS" + transform.name);  
         _input.jump = false;
+        _playerBase.playerAnim?.ChangeAnimatorState(PlayerAnimateState.Jump);
+        ParticalSpawner.OnSpawnPartical.Invoke(transform.localScale, _playerBase.footPosition.position, ParticleDefine.JUMP_PARTICLE);
 
     }
     void HandleGravity()
@@ -120,10 +121,14 @@ public class PlayerMoveBase : MonoBehaviour
             _playerBase.rigidbody2D.gravityScale = playerStat.gravityScale;
         }
     }
-    void SetLookDir(Vector2 lookDir)
+
+    public void PlayMoveParticle()
     {
-        if (lookDir.x == 0) return;
-        this.lookDir = lookDir;
+        if (_playerBase.footPosition && _groundCheck.IsGrounded)
+        {
+
+            ParticalSpawner.OnSpawnPartical.Invoke(transform.localScale, _playerBase.footPosition.position, ParticleDefine.RUN_PARTICLE);
+        }
     }
 
 }

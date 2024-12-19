@@ -49,7 +49,8 @@ public class BulletBase : MonoBehaviour
     private void CheckCollisionInterfaces(Collider2D other)
     {
 
-        var monoBehaviours = other.transform.Find("Health").GetComponents<MonoBehaviour>();
+        var monoBehaviours = other.transform.Find("Health")?.GetComponents<MonoBehaviour>();
+        if (monoBehaviours == null) return;
         foreach (var monoBehaviour in monoBehaviours)
         {
             // HandleEffectTriggerInterface(monoBehaviour, offsetPosition);

@@ -76,6 +76,7 @@ public class Spawn : MonoBehaviour
     }
     public void DespawnOjb(Transform ojb)
     {
+        // Debug.Log("Despawn" + this.poolObj);
         this.poolObj.Add(ojb);
         ojb.gameObject.SetActive(false);
     }

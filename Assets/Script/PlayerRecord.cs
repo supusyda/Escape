@@ -33,7 +33,7 @@ public class PlayerRecord : MonoBehaviour
     }
     public void AddRecord(ICommand command)
     {
-        Debug.Log("ADD RECORD");
+
         if (recordState != RecordState.Record) return;
         commandScheduler.ScheduleCommand(command);
         commandScheduler.Execute();

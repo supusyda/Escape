@@ -9,8 +9,13 @@ public class PlayerBase : MonoBehaviour
     public GroundCheck groundCheck { get; private set; }
     public PlayerRecord playerRecord { get; private set; }
     public PlayerMoveBase playerMoveBase { get; private set; }
+    public WallCheck wallCheck { get; private set; }
+
+    public PlayerAnimationController playerAnim { get; private set; }
+
     public ResetPosition resetPosition { get; private set; }
     public Shooting shooting { get; private set; }
+    public Transform footPosition { get; private set; }
     [SerializeField] private bool isDemon = false;
     static public UnityEvent<PlayerBase, bool> LoadPlayer = new UnityEvent<PlayerBase, bool>();
 
@@ -27,7 +32,15 @@ public class PlayerBase : MonoBehaviour
         playerMoveBase = GetComponent<PlayerMoveBase>();
         resetPosition = GetComponent<ResetPosition>();
         shooting = GetComponent<Shooting>();
+        playerAnim = GetComponent<PlayerAnimationController>();
+        wallCheck = transform.Find("WallCheck")?.GetComponent<WallCheck>();
+        footPosition = transform.Find("FootPosition")?.transform;
+
         EventAddLis();
+    }
+    void OnDisable()
+    {
+        EventRemoveLis();
     }
     void Start()
     {

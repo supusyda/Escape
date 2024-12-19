@@ -53,7 +53,8 @@ public class Shooting : MonoBehaviour
 
     public virtual void Shoot()
     {
-        ShootBullet.Invoke(shootDir, transform.position, BulletName.BULLET_NAME, transform.tag);
+        Vector3 spawnDir = new Vector3(transform.localScale.x, 0, 0);
+        ShootBullet.Invoke(spawnDir, transform.position, BulletName.BULLET_NAME, transform.tag);
         coolDownTimer = 0;
         _playerInput.shoot = false;
 
@@ -68,10 +69,9 @@ public class Shooting : MonoBehaviour
             return;
         }
 
+        if (!_canShoot) return;
         if (!_playerInput.shoot) return;//player input
         shootDir = _playerBase.playerMoveBase.lookDir;//set bullet move dir
-        if (shootDir == Vector2.zero) return;
-        if (!_canShoot) return;
         _playerBase.playerRecord.AddRecord(new InputCommandShoot(this));
 
 
