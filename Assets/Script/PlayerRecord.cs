@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 public enum RecordState
 {
@@ -10,14 +11,15 @@ public class PlayerRecord : MonoBehaviour
 {
     public RecordState recordState;
     [SerializeField] private CommandScheduler commandScheduler = new();
+    private PlayerUI _playerUI;
+    private Collider2D _playerCollider;
+    PlayerBase _playerBase;
 
-    void Start()
-    {
 
-    }
     void OnEnable()
     {
-        GameManager.OnResetScene.AddListener(OnRestThisRound);
+        // GameManager.OnResetScene.AddListener(OnRestThisRound);
+        GameManager.OnEndRound.AddListener(OnRestThisRound);
         // GameManager.OnHasInputActive.AddListener(OnHasInputActive);
 
     }
@@ -25,10 +27,19 @@ public class PlayerRecord : MonoBehaviour
 
     void OnDisable()
     {
-        GameManager.OnResetScene.RemoveListener(OnRestThisRound);
+        // GameManager.OnResetScene.RemoveListener(OnRestThisRound);
+        GameManager.OnEndRound.RemoveListener(OnRestThisRound);
+    }
+    void Start()
+    {
+        _playerBase = GetComponent<PlayerBase>();
+        _playerUI = _playerBase.playerUI; // get playerUI component;
+        _playerCollider = _playerBase.playerCollider;
+        ChangeState(RecordState.None);
     }
     void OnRestThisRound()
     {
+
         ChangeState(RecordState.None);
     }
     public void AddRecord(ICommand command)
@@ -48,16 +59,32 @@ public class PlayerRecord : MonoBehaviour
                     // commandScheduler.Clear();
                 }
                 commandScheduler.CreateNewReplayQueue();
-                // Debug.Log("CHANGE STATE TO RECORD");
+
                 recordState = RecordState.Record;
+
+                _playerBase.Active(); // active the colider and layer of this player
+
+
+                _playerUI.ShowControlPlayerIndicator();//show control player indicator
+
                 break;
             case RecordState.Replay:
-                // Debug.Log("CHANGE STATE TO REPLAY");
+
                 recordState = RecordState.Replay;
                 commandScheduler.BeginExecuteReplay();
+
+                _playerBase.Active();// active the colider and layer of this player
+                _playerUI.HideControlPlayerIndicator();
                 break;
             case RecordState.None:
                 recordState = RecordState.None;
+
+                _playerBase.DeactivePlayer();
+
+                // StartCoroutine(CallWithDelay(.1f, () => { _playerBase.DeactivePlayer(); }));// delay deactive to avoid collision not working correctly
+
+                _playerUI.HideControlPlayerIndicator(); // hide control player indicator
+
                 break;
             default:
                 break;
@@ -67,7 +94,7 @@ public class PlayerRecord : MonoBehaviour
     }
     public void ClearRecord()
     {
-        Debug.Log("CLEAR RECORD OF" + transform.name);
+
         commandScheduler.ClearCurrentReplay();
     }
     void FixedUpdate()
@@ -77,11 +104,15 @@ public class PlayerRecord : MonoBehaviour
             commandScheduler.ExecuteReplay();
             if (commandScheduler.DoneReplay())
             {
-                ChangeState(RecordState.None);
+                StartCoroutine(CallWithDelay(.2f, () => { ChangeState(RecordState.None); })); ;
             }
         }
 
     }
-
+    IEnumerator CallWithDelay(float delay, Action action)
+    {
+        yield return new WaitForSeconds(delay);
+        action?.Invoke();
+    }
 
 }

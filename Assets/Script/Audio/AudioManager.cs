@@ -7,14 +7,14 @@ using UnityEngine.Audio;
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
-    // [SerializeField] private SoundLibary sfx;
+    [SerializeField] private SoundLibary sfx;
     [SerializeField] private SoundLibary music;
 
-    // [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioSource sfxSource;
     [SerializeField] private AudioSource musicSource;
     [SerializeField] private float musicFadeDurrationSec = 1;
     [SerializeField] AudioMixer audioMixer;
-    // private AudioSource source;
+
 
     void Awake()
     {
@@ -35,11 +35,11 @@ public class AudioManager : MonoBehaviour
     }
 
 
-    // public void PlaySound(string soundName)
-    // {
-    //     sfxSource.pitch = Random.Range(.80f, 1.2f);
-    //     sfxSource.PlayOneShot(sfx.GetAudioClipsFromName(soundName));
-    // }
+    public void PlaySound(string soundName)
+    {
+        sfxSource.pitch = Random.Range(.80f, 1.2f);
+        sfxSource.PlayOneShot(sfx.GetAudioClipsFromName(soundName));
+    }
     public void PlayMusic(string musicName)
     {
         StartCoroutine(CrossFadeMusic(musicName));
@@ -56,7 +56,7 @@ public class AudioManager : MonoBehaviour
             yield return null;
 
         }
-        Debug.Log("musicSource.volume" + musicSource.volume);
+
         musicSource.clip = music.GetAudioClipsFromName(musicName);
         musicSource.Play();
         percent = 0;

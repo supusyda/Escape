@@ -7,7 +7,7 @@ public class BulletData : ScriptableObject
     public float speed = 10f;         // Speed of the bullet
     public float lifespan = 5f;      // Lifespan before the bullet gets destroyed
     public int damage = 1;           // Damage dealt by the bullet
-    public LayerMask hitLayers;      // Layers the bullet can interact with
+    public ContactFilter2D hitLayers;      // Layers the bullet can interact with
 
 
 }

@@ -6,6 +6,6 @@ public class ResetBtn : Btnbase
     protected override void OnClick()
     {
         base.OnClick();
-        LevelManager.Instance.TransitionToScene("LevelSelection", "Circle");
+        LevelManager.Instance.LoadCurrentLevelTransistion();
     }
 }

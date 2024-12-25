@@ -62,7 +62,23 @@ public class PlayerMoveBase : MonoBehaviour
     void FixedUpdate()
     {
         if (!_canMove) return;
-        _playerRecord.AddRecord(new InputCommandMove(_input.move.x, this));// record the input
+        if (_playerRecord)
+        {
+
+            _playerRecord.AddRecord(new InputCommandMove(_input.move.x, this));// record the input
+        }
+        else
+        {
+            Move(_input.move.x);
+            if (_input.move.x > 0) // Moving right
+            {
+                transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
+            }
+            else if (_input.move.x < 0) // Moving left
+            {
+                transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
+            }
+        }
         HandleJump();// issue when press jump all the gameobject has the input will set _input.jump = true
         HandleGravity();
     }
@@ -96,7 +112,14 @@ public class PlayerMoveBase : MonoBehaviour
 
         if (_input.jump == true)
         {
-            _playerRecord.AddRecord(new InputCommandJump(this));
+            if (_playerRecord)
+            {
+                _playerRecord.AddRecord(new InputCommandJump(this));
+            }
+            else
+            {
+                Jump();
+            }
         }
 
     }
@@ -107,7 +130,8 @@ public class PlayerMoveBase : MonoBehaviour
         // Debug.Log("JUMP ASS" + transform.name);  
         _input.jump = false;
         _playerBase.playerAnim?.ChangeAnimatorState(PlayerAnimateState.Jump);
-        ParticalSpawner.OnSpawnPartical.Invoke(transform.localScale, _playerBase.footPosition.position, ParticleDefine.JUMP_PARTICLE);
+        ParticalSpawner.OnSpawnPartical?.Invoke(transform.localScale, _playerBase.footPosition.position, ParticleDefine.JUMP_PARTICLE);
+        AudioManager.Instance?.PlaySound(AudioClipName.SFX_JUMP);
 
     }
     void HandleGravity()

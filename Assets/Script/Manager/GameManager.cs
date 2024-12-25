@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -20,17 +22,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int currentDemonActiveRePlayIndex = -1; // all demon have index < this varible can be replay
     public List<PlayerBase> angel = new List<PlayerBase>();
     public List<PlayerBase> demons = new List<PlayerBase>();
+    [SerializeField] DoorSO doorSO;
 
-    static public UnityEvent OnResetScene = new();
+    static public UnityEvent OnResetScene = new();// invoke  after some time when the round end
+    static public UnityEvent OnEndRound = new();// invoke imitditly after the round end
+    static public UnityEvent OnFailRound = new();
     static public UnityEvent OnHasInputActive = new();
-
-    static public UnityEvent OnEndTurn = new();
     static public UnityEvent OnOutOfTime = new();
     static public UnityEvent OnWinStage = new();
-
-
-
-
 
 
     void OnEnable()
@@ -60,10 +59,18 @@ public class GameManager : MonoBehaviour
             angel.Add(player);
         }
     }
+    void Awake()
+    {
+
+        doorSO.init();
+    }
     void Start()
     {
         instance = this;
-        ChangeTurn(currentTurn);// init the first logic
+        ChangeGameState(GameState.WaitForInput);
+
+
+        // ChangeTurn(currentTurn);// init the first logic
 
 
     }
@@ -119,9 +126,20 @@ public class GameManager : MonoBehaviour
     }
     private void OnTouchDoor()
     {
+        Debug.Log("OnTouchDoor");
+        this.Invoke(() =>
+        {
+            HandleLogicWhenTouchDoor();
+        }
+        , .5f);
 
 
-        if (currentTurn == TurnState.Angel)
+    }
+    private void HandleLogicWhenTouchDoor()
+    {
+        // OnEndRound.Invoke();
+
+        if (currentTurn == TurnState.Angel)// angle win round
         {
             currentDemonActiveRePlayIndex++;
 
@@ -130,7 +148,7 @@ public class GameManager : MonoBehaviour
                 OnGameWin();
                 return;
             }
-            else // angle win round
+            else
             {
                 ChangeTurn(TurnState.Demon); // 
             }
@@ -146,9 +164,15 @@ public class GameManager : MonoBehaviour
     }
     public void ChangeTurn(TurnState turn)
     {
+        OnEndRound.Invoke();
+
+        this.Invoke(() => ChangeTurnLogic(turn), 1f);//wait for a sec before reseting the scene
+
+    }
+    private void ChangeTurnLogic(TurnState turn)
+    {
         OnResetScene.Invoke();
         ChangeGameState(GameState.WaitForInput);//make the user wait for input
-
         switch (turn)
         {
             case TurnState.Angel:
@@ -167,6 +191,7 @@ public class GameManager : MonoBehaviour
     }
     private void HandleCurrentTurn()
     {
+        Debug.Log("HandleCurrentTurn");
         switch (currentTurn)
         {
             case TurnState.Angel:
@@ -197,29 +222,43 @@ public class GameManager : MonoBehaviour
             default: break;
         }
     }
-    void OnCharDieLogic(PlayerBase player)
+    void OnCharDieLogic(PlayerBase playerThatDied)
+    {
+        // OnEndStage.Invoke();
+        HandleCharDieLogic(playerThatDied);
+
+    }
+    private void HandleCharDieLogic(PlayerBase playerThatDied)
     {
         switch (currentTurn)
         {
 
             case TurnState.Angel:
-                if (IsDemon(player))//is a demon
+                if (IsDemon(playerThatDied))//is a demon
                 {
                     return;
                 }
                 else
                 {
+
                     ResetThisRound();
                     //Reset current iteration
                 }
                 break;
             case TurnState.Demon:
-                if (IsDemon(player))//is a demon
+                if (IsDemon(playerThatDied))//is a demon
                 {
                     //not do any thing
+                    Demon demon = playerThatDied as Demon;
+                    if (demon.GetID() != currentDemonActiveRePlayIndex) return;
+                    // if the demon that died is the current demon then restart the round
+                    ResetThisRound();
+                    //Reset current iteration   
+
                 }
                 else // angle died (WIN ROUND)
                 {
+                    doorSO.NextDoorOrder();
                     ChangeTurn(TurnState.Angel);
                 }
                 break;
@@ -239,13 +278,16 @@ public class GameManager : MonoBehaviour
 
     void ResetThisRound()
     {
+        OnFailRound.Invoke();
 
         if (currentTurn == TurnState.Angel) angel[0].playerRecord.ClearRecord();//clear the record
 
         else GetDemonByID(currentDemonActiveRePlayIndex).playerRecord.ClearRecord(); // clear the record
 
         ChangeTurn(currentTurn);// just to restart the turn logic
-        // ChangeGameState(GameState.WaitForInput);//make the user wait for input
+                                // ChangeGameState(GameState.WaitForInput);//make the user wait for input
+
+        Debug.Log("RESET THIS ROUND");
     }
 
     Demon GetDemonByID(int ID)
@@ -268,5 +310,18 @@ public class GameManager : MonoBehaviour
     private bool IsDemon(PlayerBase player) // just for now. can be upgrade
     {
         return player != angel[0];
+    }
+}
+public static class Utility
+{
+    public static void Invoke(this MonoBehaviour mb, Action f, float delay)
+    {
+        mb.StartCoroutine(InvokeRoutine(f, delay));
+    }
+
+    private static IEnumerator InvokeRoutine(Action f, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        f();
     }
 }

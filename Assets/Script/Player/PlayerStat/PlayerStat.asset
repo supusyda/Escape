@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: PlayerStat
   m_EditorClassIdentifier: 
   maxMoveSpeed: 10
-  JumpHeight: 4
+  JumpHeight: 5
   accelerateSpeed: 9.88
   maxAccelerateSpeedTime: 8.49
-  decelerateSpeedTime: 15.7
-  fallGravityScale: 10.9
+  decelerateSpeedTime: 14.2
+  fallGravityScale: 9.63
   gravityScale: 9.5

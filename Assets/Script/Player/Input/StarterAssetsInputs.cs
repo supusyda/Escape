@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using UnityEngine.Events;
+
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -13,7 +15,11 @@ namespace StarterAssets
         public bool jump;
 
         public bool shoot;
+        public bool openMenu;
 
+
+
+        public static UnityEvent OnOpenMenuPress = new();
 
 
 
@@ -35,7 +41,10 @@ namespace StarterAssets
         }
 
 
-
+        public void OnMenuOpen(InputValue value)
+        {
+            OnOpenMenuPress.Invoke();
+        }
         public void OnShoot(InputValue value)
         {
             ShootInput(value.isPressed);

@@ -4,7 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 public enum PlayerAnimateState
 {
-    Idle, Walk, Jump, Fall, Hurt
+    Idle, Walk, Jump, Fall, Hurt, Die
 
 }
 public class PlayerAnimationController : MonoBehaviour
@@ -17,10 +17,26 @@ public class PlayerAnimationController : MonoBehaviour
         { PlayerAnimateState.Walk, Animator.StringToHash(PlayerAnimateState.Walk.ToString()) },
         { PlayerAnimateState.Jump, Animator.StringToHash(PlayerAnimateState.Jump.ToString()) },
         { PlayerAnimateState.Fall, Animator.StringToHash(PlayerAnimateState.Fall.ToString()) },
-        { PlayerAnimateState.Hurt, Animator.StringToHash(PlayerAnimateState.Hurt.ToString()) }
+        { PlayerAnimateState.Hurt, Animator.StringToHash(PlayerAnimateState.Hurt.ToString()) },
+        { PlayerAnimateState.Die, Animator.StringToHash(PlayerAnimateState.Die.ToString()) }
+
     };
     private PlayerAnimateState _currentAnimatorState;
     Animator animator;
+    void OnEnable()
+    {
+        GameManager.OnResetScene.AddListener(OnResetScene);
+    }
+
+    private void OnResetScene()
+    {
+        ChangeAnimatorState(PlayerAnimateState.Idle);
+    }
+
+    void OnDisable()
+    {
+        GameManager.OnResetScene.RemoveListener(OnResetScene);
+    }
 
     void Awake()
     {
@@ -47,7 +63,8 @@ public class PlayerAnimationController : MonoBehaviour
 
                 break;
             case PlayerAnimateState.Walk:
-                if (Mathf.Approximately(_playerBase.rigidbody2D.linearVelocityX, 0f))
+
+                if (_playerBase.rigidbody2D.linearVelocityX <= .1f && _playerBase.rigidbody2D.linearVelocityX >= -.1f)
                     ChangeAnimatorState(PlayerAnimateState.Idle);
 
 
@@ -68,7 +85,10 @@ public class PlayerAnimationController : MonoBehaviour
                 break;
 
             case PlayerAnimateState.Hurt:
-
+                if (IsAnimationFinished(GetHashForState(_currentAnimatorState)))
+                {
+                    ChangeAnimatorState(PlayerAnimateState.Die);
+                }
                 break;
 
 
@@ -99,7 +119,12 @@ public class PlayerAnimationController : MonoBehaviour
     }
     public static int GetHashForState(PlayerAnimateState state)
     {
-        Debug.Log(state);
+        // Debug.Log(state);
         return animationHashes[state];
+    }
+    bool IsAnimationFinished(int animHash)
+    {
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0); // 0 is the base layer
+        return stateInfo.shortNameHash == animHash && stateInfo.normalizedTime >= 1f;
     }
 }

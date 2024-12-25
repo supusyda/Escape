@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class TimeUiManager : MonoBehaviour
 {
@@ -12,17 +13,21 @@ public class TimeUiManager : MonoBehaviour
     private float currentTimeRemain;
     private Coroutine _coundownCorotine;
     private bool _isCountdown = true;
+    // public static UnityEvent StopTime = new();
+
     void OnEnable()
     {
         GameManager.OnResetScene.AddListener(InitCount);
         GameManager.OnWinStage.AddListener(StopCountDownBySec);
         GameManager.OnHasInputActive.AddListener(BeginCount);
+        GameManager.OnEndRound.AddListener(StopCountDownBySec);
     }
     void OnDisable()
     {
         GameManager.OnResetScene.RemoveListener(InitCount);
         GameManager.OnWinStage.RemoveListener(StopCountDownBySec);
         GameManager.OnHasInputActive.RemoveListener(BeginCount);
+        GameManager.OnEndRound.RemoveListener(StopCountDownBySec);
 
     }
 
@@ -51,13 +56,7 @@ public class TimeUiManager : MonoBehaviour
         InitCount();
 
     }
-    void Update()
-    {
-        // currentTimeRemain -= Time.deltaTime;
 
-
-
-    }
     IEnumerator CountDownBySec(float countdownSec)
     {
 

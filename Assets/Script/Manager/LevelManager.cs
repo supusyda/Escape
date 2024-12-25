@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 public class LevelManager : MonoBehaviour
@@ -12,6 +13,8 @@ public class LevelManager : MonoBehaviour
 
     public string GAME_SCENE = "Game";
     public string LEVEL_SCENE = "LevelSelection";
+    public string CURRENT_LEVEL = "CurrentLevel";
+    public static readonly int MAX_LEVEL = 5;
     // public string MAIN_MENU_SCENE = "Menu";
 
 
@@ -23,13 +26,15 @@ public class LevelManager : MonoBehaviour
 
     private List<string> levelFiles;
     public static UnityEvent<int> OnSelectLevel = new();
+    public static UnityEvent<string, string> OnUIBtnTrans = new();
+
 
     private void Awake()
     {
         // Ensure only one instance of LevelManager exists
         if (Instance == null)
         {
-            Instance = this; Debug.Log("DONT DESTROY");
+            Instance = this;
             DontDestroyOnLoad(transform.gameObject);
             // Keep across scene loads
         }
@@ -66,14 +71,40 @@ public class LevelManager : MonoBehaviour
     }
     void LoadEvent()
     {
-
+        OnUIBtnTrans.AddListener(BtnUITrans);
+        // GameManager.OnWinStage.AddListener(OnWinStage);
     }
 
-
+    public void GoToNextLevel()
+    {
+        currentLevel++;
+        Debug.Log("Current Level: " + currentLevel);
+        if (currentLevel > MAX_LEVEL)
+        {
+            Debug.Log("REACH MAX LEVEL");
+            TransistionToLevelSelection();
+            currentLevel = MAX_LEVEL;
+            return;
+        }
+        else
+        {
+            SaveCurrentLevelToPlayerPref();
+            LoadCurrentLevelTransistion();
+        }
+    }
+    public void TransistionToLevelSelection()
+    {
+        Debug.Log("GO TO LEVEL SELECTION");
+        TransitionToScene(LEVEL_SCENE, "Circle");
+    }
+    private void BtnUITrans(string sceneName, string transitionName)
+    {
+        TransitionToScene(sceneName, transitionName);
+    }
 
     void RemoveEvent()
     {
-
+        OnUIBtnTrans.RemoveListener(BtnUITrans);
     }
     ITransition GetTransitionByName(string name)
     {
@@ -117,16 +148,11 @@ public class LevelManager : MonoBehaviour
         yield return transition.TransitionOut();
 
     }
-    IEnumerator NextLevelAnim(string transitionName)
+    public void LoadCurrentLevelTransistion()
     {
-        ITransition transition = GetTransitionByName(transitionName);
-        Debug.Log(GetTransitionByName(transitionName));
-        yield return transition.TransitionIn();
-
-        yield return transition.TransitionOut();
-
-
+        TransitionToScene(GAME_SCENE + currentLevel, "Circle");
     }
+
     // Save level progress (customize as needed)
     public void SetCurrentLevel(int level)
     {
@@ -140,18 +166,40 @@ public class LevelManager : MonoBehaviour
 
     void OnReset()
     {
-        TransitionToScene("Game", "Circle", (() =>
-        {
-            // GameManager.Instance.ResetLevel();
-        }));
+        TransitionToScene(GAME_SCENE + currentLevel, "Circle");
 
     }
 
-    private void OnLevelSelect(int levelID)
+    public void OnLevelSelect(int levelID)
     {
-        TransitionToScene(GAME_SCENE, "Circle", (() =>
-       {
-           LevelManager.OnSelectLevel.Invoke(levelID);
-       }));
+        currentLevel = levelID;
+        TransitionToScene(GAME_SCENE + levelID, "Circle");
     }
+    void SaveCurrentLevelToPlayerPref()
+    {
+        if (LoadCurrentLevelFormPlayerPref() >= currentLevel) return;
+        PlayerPrefs.SetInt(CURRENT_LEVEL, currentLevel);
+        PlayerPrefs.Save(); // Ensure the changes are written to storage.
+        Debug.Log("Level saved: " + currentLevel);
+    }
+    public int LoadCurrentLevelFormPlayerPref()
+    {
+        int level = PlayerPrefs.GetInt(CURRENT_LEVEL, 1); // Default to level 1 if not set.
+
+        return level;
+    }
+    void ResetCurrentLevel()
+    {
+        TransitionToScene(GAME_SCENE + currentLevel, "Circle");
+
+    }
+    void Update()
+    {
+        //test
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            GoToNextLevel();
+        }
+    }
+
 }

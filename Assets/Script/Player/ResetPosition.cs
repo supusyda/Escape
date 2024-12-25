@@ -13,7 +13,7 @@ public class ResetPosition : MonoBehaviour
     }
     public void ResetTransformPos()
     {
-
+        transform.localScale = new Vector3(1, 1, 1);//fix the facing direction
         transform.position = startPos;
     }
 }

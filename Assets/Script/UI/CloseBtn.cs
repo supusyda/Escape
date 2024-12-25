@@ -6,7 +6,7 @@ public class CloseBtn : Btnbase
     [SerializeField] Transform targetClose;
     protected override void OnClick()
     {
-        base.OnClick();
-        targetClose.gameObject.SetActive(false);
+
+        targetClose.GetComponent<GameOverPanel>().HideGameOverUI();
     }
 }

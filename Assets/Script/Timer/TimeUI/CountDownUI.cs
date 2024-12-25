@@ -17,6 +17,8 @@ public class CountDownUI : MonoBehaviour
     public void SetTimeCount(float time)
     {
         startTime = time;
+        countdownTMP.text = time.ToString("00");
+
     }
     public void BeginCount()
     {

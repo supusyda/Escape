@@ -1,9 +1,12 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BulletBase : MonoBehaviour
 {
-    [SerializeField] private BulletData bulletData;
+    [SerializeField] private BulletData bulletData;// data of the bullet SO
     [SerializeField] private Vector2 moveDirection = Vector2.zero;
+    // [SerializeField] ContactFilter2D contactFilter;
 
     private float lifeTimer;         // Internal timer to track lifespan
 
@@ -49,26 +52,56 @@ public class BulletBase : MonoBehaviour
     private void CheckCollisionInterfaces(Collider2D other)
     {
 
-        var monoBehaviours = other.transform.Find("Health")?.GetComponents<MonoBehaviour>();
-        if (monoBehaviours == null) return;
-        foreach (var monoBehaviour in monoBehaviours)
+        // List<ContactPoint2D> contacts = new();
+        // transform.GetComponent<Collider2D>().GetContacts(contacts);
+        // other.GetContacts(bulletData.hitLayers, contacts);
+
+
+        Transform contactTransform = other.transform;
+
+        Target hitParticle = contactTransform.GetComponent<Target>();
+        IDamageAble damageable = contactTransform.Find("Health")?.GetComponent<IDamageAble>();
+        if (other.tag == transform.tag) return;
+        // if()
+        if (damageable != null)
         {
-            // HandleEffectTriggerInterface(monoBehaviour, offsetPosition);
-            HandleDamageableInterface(monoBehaviour, other.tag);
+            HandleDamageableInterface(damageable, other.tag);
+        }
+        if (hitParticle != null)
+        {
+            HandleEffectTriggerInterface(hitParticle, transform.position);
         }
 
     }
-    private void HandleDamageableInterface(MonoBehaviour monoBehaviour, string hitTag)
+
+    private void HandleEffectTriggerInterface(Target hitParticle, Vector3 contacts)
     {
 
-        if (hitTag == transform.tag) return;
-
-        if (monoBehaviour is IDamageAble damageable)
-        {
-
-            damageable.TakeDamage(bulletData.damage);
-        }
+        hitParticle.Hit(contacts);
         DespawnBullet();
+    }
+    void DebugContactPoints(List<ContactPoint2D> contacts, int contactCount)
+    {
+        for (int i = 0; i < contactCount; i++)
+        {
+            ContactPoint2D contact = contacts[i];
+
+            // Draw the contact point in the Scene view
+            Debug.DrawLine(contact.point, contact.point + Vector2.up * 10f, Color.red, 5f);
+
+            Debug.Log($"Contact with {contact.collider.name} at {contact.point}");
+        }
+    }
+
+    private void HandleDamageableInterface(IDamageAble damageable, string hitTag)
+    {
+
+
+
+
+        damageable.TakeDamage(bulletData.damage);
+
+
     }
     // Applies damage to the hit object
     public void SetMoveDirection(Vector2 direction)

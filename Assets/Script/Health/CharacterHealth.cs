@@ -29,6 +29,7 @@ public class CharacterHealth : Health, IDamageAble
     {
         _playerBase = transform.parent.GetComponent<PlayerBase>();
         _playerBase.playerRecord.ChangeState(RecordState.None);
+        _playerBase.playerAnim.ChangeAnimatorState(PlayerAnimateState.Hurt);
         base.Die();
         OnCharacterHealthDied.Invoke(_playerBase);
 
